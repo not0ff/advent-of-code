@@ -9,26 +9,48 @@ import (
 	"strings"
 )
 
-func moveRight(v int, d int) int {
+func moveRight(v int, d int) (int, int) {
+	zeros := 0
 	for range d {
 		if v+1 <= 99 {
 			v++
 		} else {
 			v = 0
+			zeros++
 		}
 	}
-	return v
+	return v, zeros
 }
 
-func moveLeft(v int, d int) int {
+func moveLeft(v int, d int) (int, int) {
+	zeros := 0
 	for range d {
 		if v-1 >= 0 {
 			v--
+			if v == 0 {
+				zeros++
+			}
 		} else {
 			v = 99
 		}
 	}
-	return v
+	return v, zeros
+}
+
+func part2(input *bufio.Scanner) string {
+	zeros, inc, value := 0, 0, 50
+	for input.Scan() {
+		seq := strings.Split(input.Text(), "")
+		distance, _ := strconv.Atoi(strings.Join(seq[1:], ""))
+		switch seq[0] {
+		case "L":
+			value, inc = moveLeft(value, distance)
+		case "R":
+			value, inc = moveRight(value, distance)
+		}
+		zeros += inc
+	}
+	return fmt.Sprintf("Password: %v", zeros)
 }
 
 func part1(input *bufio.Scanner) string {
@@ -38,9 +60,9 @@ func part1(input *bufio.Scanner) string {
 		distance, _ := strconv.Atoi(strings.Join(seq[1:], ""))
 		switch seq[0] {
 		case "L":
-			value = moveLeft(value, distance)
+			value, _ = moveLeft(value, distance)
 		case "R":
-			value = moveRight(value, distance)
+			value, _ = moveRight(value, distance)
 		}
 		if value == 0 {
 			count++
@@ -67,5 +89,7 @@ func main() {
 	switch *Part {
 	case "p1":
 		fmt.Println(part1(s))
+	case "p2":
+		fmt.Println(part2(s))
 	}
 }
