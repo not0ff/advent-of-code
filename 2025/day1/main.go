@@ -9,76 +9,27 @@ import (
 	"strings"
 )
 
-func moveRight(v int, d int) (int, int) {
+func moveDial(val int, dis int, dir int) (int, int) {
 	zeros := 0
-	for range d {
-		if v+1 <= 99 {
-			v++
-		} else {
-			v = 0
+	for range dis {
+		val += dir
+		if val > 99 {
+			val = 0
+		} else if val < 0 {
+			val = 99
+		}
+		if val == 0 {
 			zeros++
 		}
 	}
-	return v, zeros
+	return val, zeros
 }
 
-func moveLeft(v int, d int) (int, int) {
-	zeros := 0
-	for range d {
-		if v-1 >= 0 {
-			v--
-			if v == 0 {
-				zeros++
-			}
-		} else {
-			v = 99
-		}
-	}
-	return v, zeros
-}
-
-func part2(input *bufio.Scanner) string {
-	zeros, inc, value := 0, 0, 50
-	for input.Scan() {
-		seq := strings.Split(input.Text(), "")
-		distance, _ := strconv.Atoi(strings.Join(seq[1:], ""))
-		switch seq[0] {
-		case "L":
-			value, inc = moveLeft(value, distance)
-		case "R":
-			value, inc = moveRight(value, distance)
-		}
-		zeros += inc
-	}
-	return fmt.Sprintf("Password: %v", zeros)
-}
-
-func part1(input *bufio.Scanner) string {
-	count, value := 0, 50
-	for input.Scan() {
-		seq := strings.Split(input.Text(), "")
-		distance, _ := strconv.Atoi(strings.Join(seq[1:], ""))
-		switch seq[0] {
-		case "L":
-			value, _ = moveLeft(value, distance)
-		case "R":
-			value, _ = moveRight(value, distance)
-		}
-		if value == 0 {
-			count++
-		}
-	}
-	return fmt.Sprintf("Password: %v", count)
-}
-
-var (
-	Part  = flag.String("part", "p1", "")
-	Input = flag.String("input", "inputs/input.txt", "")
-)
+var InputFile = flag.String("input", "inputs/input.txt", "")
 
 func main() {
 	flag.Parse()
-	f, err := os.Open(*Input)
+	f, err := os.Open(*InputFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -86,10 +37,21 @@ func main() {
 	defer f.Close()
 	s := bufio.NewScanner(f)
 
-	switch *Part {
-	case "p1":
-		fmt.Println(part1(s))
-	case "p2":
-		fmt.Println(part2(s))
+	zerosLeft, allZeros, val := 0, 0, 50
+	for s.Scan() {
+		seq := strings.Split(s.Text(), "")
+		dis, _ := strconv.Atoi(strings.Join(seq[1:], ""))
+		var inc int
+		switch seq[0] {
+		case "L":
+			val, inc = moveDial(val, dis, -1)
+		case "R":
+			val, inc = moveDial(val, dis, 1)
+		}
+		if val == 0 {
+			zerosLeft++
+		}
+		allZeros += inc
 	}
+	fmt.Printf("Part 1: %v\nPart 2: %v\n", zerosLeft, allZeros)
 }
