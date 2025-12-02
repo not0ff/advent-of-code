@@ -8,21 +8,21 @@ import (
 	"strings"
 )
 
-func isRepeating(x int) bool {
-	s := strconv.Itoa(x)
-	m := len(s) / 2
-	l, r := s[:m], s[m:]
-	return l == r
+func repeatedTwice(str string) bool {
+	m := len(str) / 2
+	return str[:m] == str[m:]
 }
 
-func getInvalidSum(start int, end int) int {
-	sum := 0
-	for i := start; i <= end; i++ {
-		if isRepeating(i) {
-			sum += i
+func countShortestRepeat(str string) int {
+	strLen := len(str)
+	for i := 1; i <= strLen; i++ {
+		subStr := str[:i]
+		subCount := strings.Count(str, subStr)
+		if float32(subCount) == float32(strLen)/float32(i) {
+			return subCount
 		}
 	}
-	return sum
+	return 1
 }
 
 var InputFile = flag.String("input", "inputs/input.txt", "")
@@ -35,13 +35,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	sum := 0
+	firstSum, fullSum := 0, 0
 	ranges := strings.SplitSeq(string(f), ",")
 	for pair := range ranges {
 		t := strings.Split(pair, "-")
 		first, _ := strconv.Atoi(t[0])
 		last, _ := strconv.Atoi(t[1])
-		sum += getInvalidSum(first, last)
+		for i := first; i <= last; i++ {
+			s := strconv.Itoa(i)
+			if repeatedTwice(s) {
+				firstSum += i
+			}
+			if countShortestRepeat(s) >= 2 {
+				fullSum += i
+			}
+		}
 	}
-	fmt.Printf("Sum of invalid: %v\n", sum)
+	fmt.Printf("First sum: %v\nFull sum: %v\n", firstSum, fullSum)
 }
