@@ -5,25 +5,25 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
 
-func largestCombination(nums []string) int {
-	var a, b string
-	for i, tens := range nums[:len(nums)-1] {
-		if tens <= a {
-			continue
-		}
-
-		a, b = tens, nums[i+1]
-		for _, units := range nums[i+1:] {
-			if units > b {
-				b = units
+func largestInSequence(length int, nums []string) int {
+	seq := append([]string{}, nums...)
+	gaps := len(seq) - length
+	for range gaps {
+		min := len(seq) - 1
+		for i, v := range seq[:len(seq)-1] {
+			if v < seq[i+1] {
+				min = i
+				break
 			}
 		}
+		seq = slices.Delete(seq, min, min+1)
 	}
-	r, _ := strconv.Atoi(a + b)
+	r, _ := strconv.Atoi(strings.Join(seq, ""))
 	return r
 }
 
@@ -38,11 +38,12 @@ func main() {
 	}
 	defer f.Close()
 
-	total := 0
+	totalP1, totalP2 := 0, 0
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		nums := strings.Split(s.Text(), "")
-		total += largestCombination(nums)
+		totalP1 += largestInSequence(2, nums)
+		totalP2 += largestInSequence(12, nums)
 	}
-	fmt.Println("Total output:", total)
+	fmt.Printf("Part 1: %v\nPart 2:%v\n", totalP1, totalP2)
 }
