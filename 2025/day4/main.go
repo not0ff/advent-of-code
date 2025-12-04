@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 type Grid struct {
@@ -42,9 +43,9 @@ func (g *Grid) Get(x, y int) int {
 
 func (g *Grid) String() string {
 	s := ""
-	for i := range g.g {
-		for j := range g.g[i] {
-			if g.Get(j, i) == 1 {
+	for y := range g.g {
+		for x := range g.g[y] {
+			if g.g[y][x] == 1 {
 				s += "@"
 			} else {
 				s += "."
@@ -68,6 +69,31 @@ func (g *Grid) CountAccessible(maxNear int) int {
 	return c
 }
 
+func (g *Grid) CountRemovable(maxNear int) int {
+	c := 0
+	for true {
+		toRemove := [][2]int{}
+		for y := range g.g {
+			for x := range g.g[y] {
+				n := g.Get(x-1, y-1) + g.Get(x, y-1) + g.Get(x+1, y-1) + g.Get(x-1, y) + g.Get(x+1, y) + g.Get(x-1, y+1) + g.Get(x, y+1) + g.Get(x+1, y+1)
+				if g.Get(x, y) == 1 && n <= maxNear {
+					toRemove = append(toRemove, [2]int{x, y})
+					c++
+				}
+			}
+		}
+		if len(toRemove) == 0 {
+			break
+		}
+		for _, r := range toRemove {
+			x, y := r[0], r[1]
+			g.g[y][x] = 0
+		}
+	}
+
+	return c
+}
+
 var InputFile = flag.String("input", "inputs/input.txt", "")
 
 func main() {
@@ -81,5 +107,12 @@ func main() {
 
 	s := bufio.NewScanner(f)
 	grid := NewGrid(s)
-	fmt.Println("Can be accessed:", grid.CountAccessible(3))
+
+	start := time.Now()
+	fmt.Printf("Can be accessed: %v ", grid.CountAccessible(3))
+	fmt.Printf("Microseconds: %v\n", time.Since(start).Microseconds())
+
+	start = time.Now()
+	fmt.Printf("Can be removed: %v ", grid.CountRemovable(3))
+	fmt.Printf("Microseconds: %v\n", time.Since(start).Microseconds())
 }
