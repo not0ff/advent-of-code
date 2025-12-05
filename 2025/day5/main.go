@@ -10,12 +10,12 @@ import (
 	"strings"
 )
 
-type rangeSet struct {
+type rangeArr struct {
 	r [][2]int
 }
 
 // Inserts range into a sorted array
-func (r *rangeSet) addRange(s, e int) {
+func (r *rangeArr) addRange(s, e int) {
 	for i, rng := range r.r {
 		if rng[0] >= s {
 			r.r = slices.Insert(r.r, i, [2]int{s, e})
@@ -26,7 +26,7 @@ func (r *rangeSet) addRange(s, e int) {
 }
 
 // Merges overlapping ranges together
-func (r *rangeSet) mergeRanges() {
+func (r *rangeArr) mergeRanges() {
 	merged := [][2]int{r.r[0]}
 	for _, rng := range r.r[1:] {
 		prev := &merged[len(merged)-1]
@@ -43,7 +43,7 @@ func (r *rangeSet) mergeRanges() {
 }
 
 // Count all ids in between ranges
-func (r *rangeSet) countIds() int {
+func (r *rangeArr) countIds() int {
 	c := 0
 	for _, rng := range r.r {
 		if rng != [2]int{} {
@@ -54,7 +54,7 @@ func (r *rangeSet) countIds() int {
 }
 
 // Check if value is in any of the ranges
-func (r *rangeSet) inRange(n int) bool {
+func (r *rangeArr) inRange(n int) bool {
 	for _, rng := range r.r {
 		if n >= rng[0] && n <= rng[1] {
 			return true
@@ -81,7 +81,7 @@ func main() {
 	}
 	defer f.Close()
 
-	r := rangeSet{}
+	r := rangeArr{}
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		t := s.Text()
