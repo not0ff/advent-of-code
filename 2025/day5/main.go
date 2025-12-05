@@ -5,18 +5,57 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
 
-type ruleSet [][2]int
-
-func (r *ruleSet) addRange(s, e int) {
-	*r = append(*r, [2]int{s, e})
+type rangeSet struct {
+	r [][2]int
 }
 
-func (r *ruleSet) inRange(n int) bool {
-	for _, rng := range *r {
+// Inserts range into a sorted array
+func (r *rangeSet) addRange(s, e int) {
+	for i, rng := range r.r {
+		if rng[0] >= s {
+			r.r = slices.Insert(r.r, i, [2]int{s, e})
+			return
+		}
+	}
+	r.r = append(r.r, [2]int{s, e})
+}
+
+// Merges overlapping ranges together
+func (r *rangeSet) mergeRanges() {
+	merged := [][2]int{r.r[0]}
+	for _, rng := range r.r[1:] {
+		prev := &merged[len(merged)-1]
+		if rng[0] <= prev[1] {
+			if rng[1] > prev[1] {
+				prev[1] = rng[1]
+			}
+		} else {
+			merged = append(merged, rng)
+			prev = &rng
+		}
+	}
+	r.r = merged
+}
+
+// Count all ids in between ranges
+func (r *rangeSet) countIds() int {
+	c := 0
+	for _, rng := range r.r {
+		if rng != [2]int{} {
+			c += rng[1] - rng[0] + 1
+		}
+	}
+	return c
+}
+
+// Check if value is in any of the ranges
+func (r *rangeSet) inRange(n int) bool {
+	for _, rng := range r.r {
 		if n >= rng[0] && n <= rng[1] {
 			return true
 		}
@@ -42,22 +81,25 @@ func main() {
 	}
 	defer f.Close()
 
-	var rules ruleSet
+	r := rangeSet{}
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		t := s.Text()
 		if len(t) == 0 {
 			break
 		}
-		rules.addRange(getIds(t))
+		r.addRange(getIds(t))
 	}
+	r.mergeRanges()
+
 	fresh := 0
 	for s.Scan() {
 		id, _ := strconv.Atoi(s.Text())
-		if rules.inRange(id) {
+		if r.inRange(id) {
 			fresh++
 		}
 	}
 
 	fmt.Println("Fresh:", fresh)
+	fmt.Println("Fresh ids:", r.countIds())
 }
