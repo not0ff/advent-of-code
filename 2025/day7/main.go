@@ -20,40 +20,37 @@ func main() {
 	}
 	defer f.Close()
 
+	var manifold [][]string
 	s := bufio.NewScanner(f)
-	splits := 0
-	beams := make([]int, 0)
 	for s.Scan() {
-		t := strings.Split(s.Text(), "")
-		if slices.Contains(t, "S") {
-			beams = append(beams, slices.Index(t, "S"))
-			continue
-		}
+		manifold = append(manifold, strings.Split(s.Text(), ""))
+	}
 
-		nBeams := make([]int, 0)
-		for _, loc := range beams {
-			if t[loc] == "^" {
-				if !slices.Contains(nBeams, loc-1) {
-					nBeams = append(nBeams, loc-1)
-				}
-				if !slices.Contains(nBeams, loc+1) {
-					nBeams = append(nBeams, loc+1)
-				}
-
-				t[loc-1] = "|"
-				t[loc+1] = "|"
+	beams := make([]int, len(manifold[0]))
+	beams[slices.Index(manifold[0], "S")] = 1
+	splits := 0
+	for _, layer := range manifold {
+		for i, v := range beams {
+			if v == 0 {
+				continue
+			} else if layer[i] == "^" {
 				splits++
+				beams[i-1] += v
+				beams[i+1] += v
+				beams[i] = 0
+
+				layer[i-1], layer[i+1] = "|", "|"
 			} else {
-				if !slices.Contains(nBeams, loc) {
-					nBeams = append(nBeams, loc)
-				}
-				t[loc] = "|"
+				layer[i] = "|"
 			}
 		}
-		// fmt.Print(splits)
-		beams = nBeams
-		// fmt.Println(t)
-		// fmt.Println(nBeams)
+		fmt.Println(layer)
 	}
-	fmt.Println(splits)
+
+	timelines := 0
+	for _, v := range beams {
+		timelines += v
+	}
+
+	fmt.Printf("Splits: %v Timelines: %v\n", splits, timelines)
 }
